@@ -9,6 +9,16 @@ const {
   GraphQLSchema,
 } = graphql;
 
+//CompanyType needs to be before the UserType
+const CompanyType = new GraphQLObjectType({
+  name: 'Company',
+  fields: {
+    id: { type: GraphQLString },
+    name: { type: GraphQLString },
+    description: { type: GraphQLString },
+  },
+});
+
 //UserType object instructs grpahql about what a user object looks like
 //type of data which is UserType
 const UserType = new GraphQLObjectType({
@@ -18,6 +28,19 @@ const UserType = new GraphQLObjectType({
     id: { type: GraphQLString },
     firstName: { type: GraphQLString },
     age: { type: GraphQLInt },
+    //associate a company with a user
+    company: {
+      type: CompanyType,
+      //resolve to let graphql find a company that is associated with a given user
+      //teach graphql how to walk from a user to a company
+      //resolve resolves the difference between the incoming JSON/data model (companytId) and the actual data type we are trying to use here(company)
+      resolve(parentValue, args) {
+        //resolve comnay with a user
+        return axios
+          .get(`http://localhost:3000/companies/${parentValue.companyId}`)
+          .then((res) => res.data);
+      },
+    },
   },
 });
 
