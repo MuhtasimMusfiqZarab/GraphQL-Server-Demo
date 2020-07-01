@@ -1,6 +1,6 @@
 //contains all the knowledge required for telling graphql exactly what your app data looks like(what properties each object has and how each object is related to each other)
 const graphql = require('graphql');
-const _ = require('lodash');
+const axios = require('axios');
 const {
   //this instructs graphql about the presence of a user in our app(an idea of the user)
   GraphQLObjectType,
@@ -8,20 +8,6 @@ const {
   GraphQLInt,
   GraphQLSchema,
 } = graphql;
-
-//here are the hard coded list of users
-const users = [
-  {
-    id: '23',
-    firstName: 'Bill',
-    age: 20,
-  },
-  {
-    id: '47',
-    firstName: 'Samantha',
-    age: 21,
-  },
-];
 
 //UserType object instructs grpahql about what a user object looks like
 //type of data which is UserType
@@ -51,7 +37,11 @@ const RootQuery = new GraphQLObjectType({
       //parentvalue - not ever used //arg is what we care about
       resolve(parentValue, args) {
         //return user with the given id inside the args
-        return _.find(users, { id: args.id });
+        //calling to json server
+        return axios
+          .get(`http://localhost:3000/users/${args.id}`)
+          .then((response) => response.data)
+          .catch((e) => console.log(e));
       },
     },
   },
