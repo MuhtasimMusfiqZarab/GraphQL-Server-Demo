@@ -7,16 +7,29 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLSchema,
+  GraphQLList,
 } = graphql;
 
 //CompanyType needs to be before the UserType
 const CompanyType = new GraphQLObjectType({
   name: 'Company',
-  fields: {
+  //field uses arrow function for circular references issues
+  fields: () => ({
     id: { type: GraphQLString },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
-  },
+    //associates all the users with the company who are working here
+    users: {
+      // we have many users in a single company
+      // we need to tell graphql that it is going to get a list of users
+      type: new GraphQLList(UserType),
+      resolve(parentValue, args) {
+        return axios
+          .get(`http://localhost:3000/companies/${parentValue.id}/users`)
+          .then((res) => res.data);
+      },
+    },
+  }),
 });
 
 //UserType object instructs grpahql about what a user object looks like
@@ -24,6 +37,7 @@ const CompanyType = new GraphQLObjectType({
 const UserType = new GraphQLObjectType({
   //1st two are qruied properties
   name: 'User',
+  //we also can use arrow function here for circular reference , but no need to use
   fields: {
     id: { type: GraphQLString },
     firstName: { type: GraphQLString },
